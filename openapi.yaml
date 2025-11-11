@@ -1,0 +1,2555 @@
+openapi: 3.1.0
+info:
+  title: ConstrSW BFF API
+  description: |
+    Backend for Frontend (BFF) REST API que agrega e simplifica o acesso aos microserviços do sistema ConstrSW.
+    
+    Esta API atua como uma camada intermediária entre o frontend e os microserviços, fornecendo:
+    - Agregação de dados de múltiplos serviços
+    - Simplificação de chamadas complexas
+    - Redução do número de requisições necessárias
+    - Padronização de respostas
+    
+    ## Autenticação
+    Todos os endpoints (exceto `/auth/login` e `/auth/refresh`) requerem autenticação via Bearer Token (JWT).
+    O token deve ser obtido através do endpoint `/auth/login` e incluído no header `Authorization: Bearer <token>`.
+    
+    ## Microserviços Agregados
+    - OAuth (Autenticação e Autorização)
+    - Employees (Funcionários)
+    - Classes (Turmas)
+    - Courses (Cursos)
+    - Lessons (Aulas)
+    - Professors (Professores)
+    - Reservations (Reservas)
+    - Resources (Recursos)
+    - Rooms (Salas)
+    - Students (Estudantes)
+  version: 1.0.0
+  contact:
+    name: ConstrSW Team
+    email: support@constrsw.example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desenvolvimento local
+  - url: http://api:3000/api/v1
+    description: Servidor interno (Docker)
+
+tags:
+  - name: Auth
+    description: Autenticação e autorização
+  - name: Users
+    description: Gerenciamento de usuários
+  - name: Roles
+    description: Gerenciamento de roles e permissões
+  - name: Employees
+    description: Gerenciamento de funcionários e tarefas
+  - name: Students
+    description: Gerenciamento de estudantes
+  - name: Professors
+    description: Gerenciamento de professores
+  - name: Courses
+    description: Gerenciamento de cursos
+  - name: Classes
+    description: Gerenciamento de turmas
+  - name: Lessons
+    description: Gerenciamento de aulas
+  - name: Reservations
+    description: Gerenciamento de reservas
+  - name: Resources
+    description: Gerenciamento de recursos
+  - name: Rooms
+    description: Gerenciamento de salas
+  - name: Health
+    description: Health checks e status do sistema
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Verifica o status de saúde da BFF e dos microserviços agregados
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Serviço está operacional
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Um ou mais microserviços estão indisponíveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Autenticação de usuário
+      description: Autentica um usuário e retorna tokens de acesso e refresh
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Nome de usuário
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+      responses:
+        '201':
+          description: Autenticação bem-sucedida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Renovar access token
+      description: Obtém um novo access token usando um refresh token válido
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token válido
+      responses:
+        '201':
+          description: Token renovado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Refresh token inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/validate:
+    post:
+      tags:
+        - Auth
+      summary: Validar access token
+      description: Valida um access token e retorna informações sobre sua validade
+      operationId: validateToken
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectResponse'
+        '401':
+          description: Token inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Listar usuários
+      description: Retorna uma lista de usuários cadastrados
+      operationId: listUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: enabled
+          in: query
+          description: Filtrar por status (true/false)
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de usuários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Users
+      summary: Criar usuário
+      description: Cria um novo usuário no sistema
+      operationId: createUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Buscar usuário por ID
+      description: Retorna os detalhes de um usuário específico
+      operationId: getUserById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Dados do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Users
+      summary: Atualizar usuário (completo)
+      description: Atualiza todas as informações de um usuário
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: Usuário atualizado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Users
+      summary: Desativar usuário
+      description: Realiza exclusão lógica (desativação) de um usuário
+      operationId: deleteUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: Usuário desativado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/{userId}/roles:
+    get:
+      tags:
+        - Users
+      summary: Listar roles de um usuário
+      description: Retorna todos os roles associados a um usuário
+      operationId: getUserRoles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Lista de roles do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Users
+      summary: Atribuir roles a um usuário
+      description: Atribui uma ou mais roles a um usuário
+      operationId: assignRolesToUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRolesRequest'
+      responses:
+        '204':
+          description: Roles atribuídas com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /roles:
+    get:
+      tags:
+        - Roles
+      summary: Listar roles
+      description: Retorna uma lista de todos os roles cadastrados
+      operationId: listRoles
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: enabled
+          in: query
+          description: Filtrar por status (true/false)
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Roles
+      summary: Criar role
+      description: Cria um novo role no sistema
+      operationId: createRole
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreateRequest'
+      responses:
+        '201':
+          description: Role criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /roles/{roleId}:
+    get:
+      tags:
+        - Roles
+      summary: Buscar role por ID
+      description: Retorna os detalhes de um role específico
+      operationId: getRoleById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '200':
+          description: Dados do role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Roles
+      summary: Atualizar role (completo)
+      description: Atualiza todos os dados de um role
+      operationId: updateRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+      responses:
+        '200':
+          description: Role atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Roles
+      summary: Excluir role
+      description: Exclui um role do sistema permanentemente
+      operationId: deleteRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '204':
+          description: Role excluído com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /employees:
+    get:
+      tags:
+        - Employees
+      summary: Listar funcionários
+      description: Retorna uma lista de funcionários com paginação e busca
+      operationId: listEmployees
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+            description: Busca por nome, email ou documento
+      responses:
+        '200':
+          description: Lista de funcionários
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Employees
+      summary: Criar funcionário
+      description: Cria um novo funcionário no sistema
+      operationId: createEmployee
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreateRequest'
+      responses:
+        '201':
+          description: Funcionário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /employees/{employeeId}:
+    get:
+      tags:
+        - Employees
+      summary: Buscar funcionário por ID
+      description: Retorna os detalhes de um funcionário específico
+      operationId: getEmployeeById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Dados do funcionário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Employees
+      summary: Atualizar funcionário (completo)
+      operationId: updateEmployee
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateRequest'
+      responses:
+        '200':
+          description: Funcionário atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Employees
+      summary: Deletar funcionário
+      operationId: deleteEmployee
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '204':
+          description: Funcionário deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /employees/{employeeId}/tasks:
+    get:
+      tags:
+        - Employees
+      summary: Listar tarefas de um funcionário
+      description: Retorna as tarefas associadas a um funcionário
+      operationId: getEmployeeTasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: description
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de tarefas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Employees
+      summary: Criar tarefa para funcionário
+      operationId: createEmployeeTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+      responses:
+        '201':
+          description: Tarefa criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /students:
+    get:
+      tags:
+        - Students
+      summary: Listar estudantes
+      description: Retorna uma lista de estudantes com filtros opcionais
+      operationId: listStudents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: enrollment
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: Lista de estudantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Students
+      summary: Criar estudante
+      operationId: createStudent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentCreateRequest'
+      responses:
+        '201':
+          description: Estudante criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /students/{studentId}:
+    get:
+      tags:
+        - Students
+      summary: Buscar estudante por ID
+      operationId: getStudentById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Dados do estudante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Students
+      summary: Atualizar estudante (completo)
+      operationId: updateStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentUpdateRequest'
+      responses:
+        '204':
+          description: Estudante atualizado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Students
+      summary: Deletar estudante
+      operationId: deleteStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '204':
+          description: Estudante deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /professors:
+    get:
+      tags:
+        - Professors
+      summary: Listar professores
+      description: Retorna uma lista de professores com filtros opcionais
+      operationId: listProfessors
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de professores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfessorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Professors
+      summary: Criar professor
+      operationId: createProfessor
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessorCreateRequest'
+      responses:
+        '201':
+          description: Professor criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /professors/{professorId}:
+    get:
+      tags:
+        - Professors
+      summary: Buscar professor por ID
+      operationId: getProfessorById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      responses:
+        '200':
+          description: Dados do professor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Professors
+      summary: Atualizar professor (completo)
+      operationId: updateProfessor
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessorUpdateRequest'
+      responses:
+        '200':
+          description: Professor atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Professors
+      summary: Deletar professor
+      operationId: deleteProfessor
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      responses:
+        '204':
+          description: Professor deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /courses:
+    get:
+      tags:
+        - Courses
+      summary: Listar cursos
+      description: Retorna uma lista de cursos com filtros opcionais
+      operationId: listCourses
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: modality
+          in: query
+          schema:
+            type: string
+            enum: [PRESENCIAL, EAD, HIBRIDO]
+      responses:
+        '200':
+          description: Lista de cursos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Courses
+      summary: Criar curso
+      operationId: createCourse
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+      responses:
+        '201':
+          description: Curso criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /courses/{courseId}:
+    get:
+      tags:
+        - Courses
+      summary: Buscar curso por ID
+      operationId: getCourseById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Dados do curso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Courses
+      summary: Atualizar curso (completo)
+      operationId: updateCourse
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdateRequest'
+      responses:
+        '200':
+          description: Curso atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Courses
+      summary: Deletar curso
+      operationId: deleteCourse
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '204':
+          description: Curso deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /classes:
+    get:
+      tags:
+        - Classes
+      summary: Listar turmas
+      description: Retorna uma lista de turmas com filtros e paginação
+      operationId: listClasses
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: semester
+          in: query
+          schema:
+            type: integer
+        - name: course_id
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lista de turmas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Classes
+      summary: Criar turma
+      operationId: createClass
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassCreateRequest'
+      responses:
+        '201':
+          description: Turma criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /classes/{classId}:
+    get:
+      tags:
+        - Classes
+      summary: Buscar turma por ID
+      operationId: getClassById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      responses:
+        '200':
+          description: Dados da turma
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Classes
+      summary: Atualizar turma (completo)
+      operationId: updateClass
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassUpdateRequest'
+      responses:
+        '200':
+          description: Turma atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Classes
+      summary: Deletar turma
+      operationId: deleteClass
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      responses:
+        '204':
+          description: Turma deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /lessons:
+    get:
+      tags:
+        - Lessons
+      summary: Listar aulas
+      operationId: listLessons
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de aulas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LessonResponse'
+        '204':
+          description: Nenhuma aula encontrada
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Lessons
+      summary: Criar aula
+      operationId: createLesson
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LessonCreateRequest'
+      responses:
+        '201':
+          description: Aula criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /lessons/{lessonId}:
+    get:
+      tags:
+        - Lessons
+      summary: Buscar aula por ID
+      operationId: getLessonById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+      responses:
+        '200':
+          description: Dados da aula
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Lessons
+      summary: Atualizar aula (completo)
+      operationId: updateLesson
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LessonUpdateRequest'
+      responses:
+        '200':
+          description: Aula atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Lessons
+      summary: Deletar aula
+      operationId: deleteLesson
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+      responses:
+        '204':
+          description: Aula deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /reservations:
+    get:
+      tags:
+        - Reservations
+      summary: Listar reservas
+      description: Retorna uma lista de reservas com filtros avançados
+      operationId: listReservations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservation_id
+          in: query
+          schema:
+            type: string
+        - name: initial_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: details
+          in: query
+          schema:
+            type: string
+        - name: resource_id
+          in: query
+          schema:
+            type: string
+        - name: lesson_id
+          in: query
+          schema:
+            type: string
+        - name: deleted
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de reservas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Reservations
+      summary: Criar reserva
+      operationId: createReservation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreateRequest'
+      responses:
+        '201':
+          description: Reserva criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /reservations/{reservationId}:
+    get:
+      tags:
+        - Reservations
+      summary: Buscar reserva por ID
+      operationId: getReservationById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: Dados da reserva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Reservations
+      summary: Atualizar reserva (completo)
+      operationId: updateReservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationUpdateRequest'
+      responses:
+        '200':
+          description: Reserva atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Reservations
+      summary: Remover reserva
+      operationId: deleteReservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: Reserva removida com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /resources:
+    get:
+      tags:
+        - Resources
+      summary: Listar recursos
+      operationId: listResources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de recursos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar recurso
+      operationId: createResource
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceCreateRequest'
+      responses:
+        '201':
+          description: Recurso criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /resources/{resourceId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar recurso por ID
+      operationId: getResourceById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Dados do recurso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Resources
+      summary: Atualizar recurso (completo)
+      operationId: updateResource
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceUpdateRequest'
+      responses:
+        '200':
+          description: Recurso atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Resources
+      summary: Deletar recurso
+      operationId: deleteResource
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Recurso deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /rooms:
+    get:
+      tags:
+        - Rooms
+      summary: Listar salas
+      description: Retorna uma lista de salas com filtros e paginação
+      operationId: listRooms
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: building
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [AVAILABLE, OCCUPIED, MAINTENANCE, RESERVED]
+        - name: minCapacity
+          in: query
+          schema:
+            type: integer
+        - name: maxCapacity
+          in: query
+          schema:
+            type: integer
+        - name: number
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de salas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Rooms
+      summary: Criar sala
+      operationId: createRoom
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomCreateRequest'
+      responses:
+        '201':
+          description: Sala criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /rooms/{roomId}:
+    get:
+      tags:
+        - Rooms
+      summary: Buscar sala por ID
+      operationId: getRoomById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Dados da sala
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Rooms
+      summary: Atualizar sala (completo)
+      operationId: updateRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomUpdateRequest'
+      responses:
+        '200':
+          description: Sala atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Rooms
+      summary: Deletar sala
+      operationId: deleteRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '204':
+          description: Sala deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtido através do endpoint /auth/login
+
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: ID único do usuário
+      schema:
+        type: string
+    RoleId:
+      name: roleId
+      in: path
+      required: true
+      description: ID único do role
+      schema:
+        type: string
+    EmployeeId:
+      name: employeeId
+      in: path
+      required: true
+      description: ID único do funcionário
+      schema:
+        type: string
+    StudentId:
+      name: studentId
+      in: path
+      required: true
+      description: ID único do estudante (UUID)
+      schema:
+        type: string
+        format: uuid
+    ProfessorId:
+      name: professorId
+      in: path
+      required: true
+      description: ID único do professor (UUID)
+      schema:
+        type: string
+        format: uuid
+    CourseId:
+      name: courseId
+      in: path
+      required: true
+      description: ID único do curso
+      schema:
+        type: string
+    ClassId:
+      name: classId
+      in: path
+      required: true
+      description: ID único da turma
+      schema:
+        type: string
+    LessonId:
+      name: lessonId
+      in: path
+      required: true
+      description: ID único da aula (UUID)
+      schema:
+        type: string
+        format: uuid
+    ReservationId:
+      name: reservationId
+      in: path
+      required: true
+      description: ID único da reserva
+      schema:
+        type: string
+    ResourceId:
+      name: resourceId
+      in: path
+      required: true
+      description: ID único do recurso (UUID)
+      schema:
+        type: string
+        format: uuid
+    RoomId:
+      name: roomId
+      in: path
+      required: true
+      description: ID único da sala
+      schema:
+        type: string
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+        components:
+          type: object
+          properties:
+            bff:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            oauth:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            employees:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            students:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            professors:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            courses:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            classes:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            lessons:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            reservations:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            resources:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+            rooms:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [UP, DOWN]
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Token de acesso JWT
+        refresh_token:
+          type: string
+          description: Token de refresh
+        expires_in:
+          type: integer
+          description: Tempo de expiração em segundos
+        token_type:
+          type: string
+          default: Bearer
+
+    IntrospectResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+          description: Indica se o token está ativo
+        exp:
+          type: integer
+          description: Timestamp de expiração
+        iat:
+          type: integer
+          description: Timestamp de emissão
+        sub:
+          type: string
+          description: Subject (ID do usuário)
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Mensagem de erro
+        status_code:
+          type: integer
+          description: Código HTTP do erro
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserCreateRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        firstName:
+          type: string
+        lastName:
+          type: string
+        enabled:
+          type: boolean
+          default: true
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        enabled:
+          type: boolean
+
+    UserRolesRequest:
+      type: object
+      required:
+        - role_ids
+      properties:
+        role_ids:
+          type: array
+          items:
+            type: string
+
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RoleCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+          default: true
+
+    RoleUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+
+    EmployeeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        document:
+          type: string
+        position:
+          type: string
+        department:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EmployeeListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeResponse'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    EmployeeCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - document
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        document:
+          type: string
+        position:
+          type: string
+        department:
+          type: string
+
+    EmployeeUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        document:
+          type: string
+        position:
+          type: string
+        department:
+          type: string
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+        employeeId:
+          type: string
+
+    TaskCreateRequest:
+      type: object
+      required:
+        - description
+        - startDate
+        - endDate
+      properties:
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    StudentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        enrollment:
+          type: string
+        email:
+          type: string
+          format: email
+        birthDate:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StudentCreateRequest:
+      type: object
+      required:
+        - name
+        - enrollment
+        - email
+      properties:
+        name:
+          type: string
+        enrollment:
+          type: string
+        email:
+          type: string
+          format: email
+        birthDate:
+          type: string
+          format: date
+
+    StudentUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        enrollment:
+          type: string
+        email:
+          type: string
+          format: email
+        birthDate:
+          type: string
+          format: date
+
+    ProfessorResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        document:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProfessorCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - document
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        document:
+          type: string
+        status:
+          type: string
+
+    ProfessorUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        document:
+          type: string
+        status:
+          type: string
+
+    CourseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        modality:
+          type: string
+          enum: [PRESENCIAL, EAD, HIBRIDO]
+        duration:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CourseCreateRequest:
+      type: object
+      required:
+        - name
+        - modality
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        modality:
+          type: string
+          enum: [PRESENCIAL, EAD, HIBRIDO]
+        duration:
+          type: integer
+
+    CourseUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        modality:
+          type: string
+          enum: [PRESENCIAL, EAD, HIBRIDO]
+        duration:
+          type: integer
+
+    ClassResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        classNumber:
+          type: string
+        year:
+          type: integer
+        semester:
+          type: integer
+        schedule:
+          type: string
+        course:
+          type: object
+          properties:
+            id:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ClassCreateRequest:
+      type: object
+      required:
+        - classNumber
+        - year
+        - semester
+        - course
+      properties:
+        classNumber:
+          type: string
+        year:
+          type: integer
+        semester:
+          type: integer
+        schedule:
+          type: string
+        course:
+          type: object
+          properties:
+            id:
+              type: string
+
+    ClassUpdateRequest:
+      type: object
+      properties:
+        classNumber:
+          type: string
+        year:
+          type: integer
+        semester:
+          type: integer
+        schedule:
+          type: string
+        course:
+          type: object
+          properties:
+            id:
+              type: string
+
+    LessonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LessonCreateRequest:
+      type: object
+      required:
+        - title
+        - date
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+
+    LessonUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+
+    ReservationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        initialDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        details:
+          type: string
+        resourceId:
+          type: string
+        lessonId:
+          type: string
+        deleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ReservationCreateRequest:
+      type: object
+      required:
+        - initialDate
+        - endDate
+        - resourceId
+      properties:
+        initialDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        details:
+          type: string
+        resourceId:
+          type: string
+        lessonId:
+          type: string
+
+    ReservationUpdateRequest:
+      type: object
+      properties:
+        initialDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        details:
+          type: string
+        resourceId:
+          type: string
+        lessonId:
+          type: string
+
+    ResourceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ResourceCreateRequest:
+      type: object
+      required:
+        - name
+        - categoryId
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+
+    ResourceUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+
+    RoomResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        building:
+          type: string
+        category:
+          type: string
+        capacity:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, OCCUPIED, MAINTENANCE, RESERVED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RoomCreateRequest:
+      type: object
+      required:
+        - number
+        - building
+        - capacity
+      properties:
+        number:
+          type: string
+        building:
+          type: string
+        category:
+          type: string
+        capacity:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, OCCUPIED, MAINTENANCE, RESERVED]
+          default: AVAILABLE
+
+    RoomUpdateRequest:
+      type: object
+      properties:
+        number:
+          type: string
+        building:
+          type: string
+        category:
+          type: string
+        capacity:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, OCCUPIED, MAINTENANCE, RESERVED]
+
+  responses:
+    BadRequestError:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Não autorizado - Token ausente, inválido ou expirado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
