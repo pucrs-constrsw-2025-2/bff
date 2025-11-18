@@ -18,7 +18,7 @@ info:
     - OAuth (Autenticação e Autorização)
     - Employees (Funcionários)
     - Classes (Turmas)
-    - Courses (Cursos)
+    - Courses (Disciplinas)
     - Lessons (Aulas)
     - Professors (Professores)
     - Reservations (Reservas)
@@ -53,7 +53,7 @@ tags:
   - name: Professors
     description: Gerenciamento de professores
   - name: Courses
-    description: Gerenciamento de cursos
+    description: Gerenciamento de disciplinas
   - name: Classes
     description: Gerenciamento de turmas
   - name: Lessons
@@ -99,7 +99,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               required:
@@ -114,7 +114,7 @@ paths:
                   format: password
                   description: Senha do usuário
       responses:
-        '201':
+        '200':
           description: Autenticação bem-sucedida
           content:
             application/json:
@@ -137,7 +137,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               required:
@@ -147,7 +147,7 @@ paths:
                   type: string
                   description: Refresh token válido
       responses:
-        '201':
+        '200':
           description: Token renovado com sucesso
           content:
             application/json:
@@ -175,7 +175,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntrospectResponse'
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
         '401':
           description: Token inválido ou expirado
           content:
@@ -298,54 +302,6 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /users/{userId}/roles:
-    get:
-      tags:
-        - Users
-      summary: Listar roles de um usuário
-      description: Retorna todos os roles associados a um usuário
-      operationId: getUserRoles
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '200':
-          description: Lista de roles do usuário
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RoleResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-    post:
-      tags:
-        - Users
-      summary: Atribuir roles a um usuário
-      description: Atribui uma ou mais roles a um usuário
-      operationId: assignRolesToUser
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/UserId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRolesRequest'
-      responses:
-        '204':
-          description: Roles atribuídas com sucesso
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-
   /roles:
     get:
       tags:
@@ -398,7 +354,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /roles/{roleId}:
+  /roles/{id}:
     get:
       tags:
         - Roles
@@ -528,7 +484,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /employees/{employeeId}:
+  /employees/{id}:
     get:
       tags:
         - Employees
@@ -593,81 +549,6 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /employees/{employeeId}/tasks:
-    get:
-      tags:
-        - Employees
-      summary: Listar tarefas de um funcionário
-      description: Retorna as tarefas associadas a um funcionário
-      operationId: getEmployeeTasks
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/EmployeeId'
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: description
-          in: query
-          schema:
-            type: string
-        - name: startDate
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: endDate
-          in: query
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: Lista de tarefas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TaskResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-    post:
-      tags:
-        - Employees
-      summary: Criar tarefa para funcionário
-      operationId: createEmployeeTask
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/EmployeeId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TaskCreateRequest'
-      responses:
-        '201':
-          description: Tarefa criada com sucesso
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-
   /students:
     get:
       tags:
@@ -727,7 +608,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /students/{studentId}:
+  /students/{id}:
     get:
       tags:
         - Students
@@ -841,7 +722,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /professors/{professorId}:
+  /professors/{id}:
     get:
       tags:
         - Professors
@@ -909,8 +790,8 @@ paths:
     get:
       tags:
         - Courses
-      summary: Listar cursos
-      description: Retorna uma lista de cursos com filtros opcionais
+      summary: Listar disciplinas
+      description: Retorna uma lista de disciplinas com filtros opcionais
       operationId: listCourses
       security:
         - bearerAuth: []
@@ -926,7 +807,7 @@ paths:
             enum: [PRESENCIAL, EAD, HIBRIDO]
       responses:
         '200':
-          description: Lista de cursos
+          description: Lista de disciplinas
           content:
             application/json:
               schema:
@@ -938,7 +819,7 @@ paths:
     post:
       tags:
         - Courses
-      summary: Criar curso
+      summary: Criar disciplina
       operationId: createCourse
       security:
         - bearerAuth: []
@@ -950,7 +831,7 @@ paths:
               $ref: '#/components/schemas/CourseCreateRequest'
       responses:
         '201':
-          description: Curso criado com sucesso
+          description: Disciplina criada com sucesso
           content:
             application/json:
               schema:
@@ -960,11 +841,11 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /courses/{courseId}:
+  /courses/{id}:
     get:
       tags:
         - Courses
-      summary: Buscar curso por ID
+      summary: Buscar disciplina por ID
       operationId: getCourseById
       security:
         - bearerAuth: []
@@ -972,7 +853,7 @@ paths:
         - $ref: '#/components/parameters/CourseId'
       responses:
         '200':
-          description: Dados do curso
+          description: Dados da disciplina
           content:
             application/json:
               schema:
@@ -984,7 +865,7 @@ paths:
     put:
       tags:
         - Courses
-      summary: Atualizar curso (completo)
+      summary: Atualizar disciplina (completo)
       operationId: updateCourse
       security:
         - bearerAuth: []
@@ -998,7 +879,7 @@ paths:
               $ref: '#/components/schemas/CourseUpdateRequest'
       responses:
         '200':
-          description: Curso atualizado com sucesso
+          description: Disciplina atualizada com sucesso
           content:
             application/json:
               schema:
@@ -1010,7 +891,7 @@ paths:
     delete:
       tags:
         - Courses
-      summary: Deletar curso
+      summary: Deletar disciplina
       operationId: deleteCourse
       security:
         - bearerAuth: []
@@ -1018,7 +899,7 @@ paths:
         - $ref: '#/components/parameters/CourseId'
       responses:
         '204':
-          description: Curso deletado com sucesso
+          description: Disciplina deletada com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -1044,6 +925,7 @@ paths:
             type: integer
         - name: course_id
           in: query
+          description: ID da disciplina associada à turma
           schema:
             type: string
         - name: page
@@ -1092,7 +974,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /classes/{classId}:
+  /classes/{id}:
     get:
       tags:
         - Classes
@@ -1202,7 +1084,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /lessons/{lessonId}:
+  /lessons/{id}:
     get:
       tags:
         - Lessons
@@ -1342,7 +1224,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /reservations/{reservationId}:
+  /reservations/{id}:
     get:
       tags:
         - Reservations
@@ -1456,7 +1338,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /resources/{resourceId}:
+  /resources/{id}:
     get:
       tags:
         - Resources
@@ -1601,7 +1483,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /rooms/{roomId}:
+  /rooms/{id}:
     get:
       tags:
         - Rooms
@@ -1689,14 +1571,14 @@ components:
       schema:
         type: string
     EmployeeId:
-      name: employeeId
+      name: id
       in: path
       required: true
       description: ID único do funcionário
       schema:
         type: string
     StudentId:
-      name: studentId
+      name: id
       in: path
       required: true
       description: ID único do estudante (UUID)
@@ -1704,7 +1586,7 @@ components:
         type: string
         format: uuid
     ProfessorId:
-      name: professorId
+      name: id
       in: path
       required: true
       description: ID único do professor (UUID)
@@ -1712,21 +1594,21 @@ components:
         type: string
         format: uuid
     CourseId:
-      name: courseId
+      name: id
       in: path
       required: true
-      description: ID único do curso
+      description: ID único da disciplina
       schema:
         type: string
     ClassId:
-      name: classId
+      name: id
       in: path
       required: true
       description: ID único da turma
       schema:
         type: string
     LessonId:
-      name: lessonId
+      name: id
       in: path
       required: true
       description: ID único da aula (UUID)
@@ -1734,14 +1616,14 @@ components:
         type: string
         format: uuid
     ReservationId:
-      name: reservationId
+      name: id
       in: path
       required: true
       description: ID único da reserva
       schema:
         type: string
     ResourceId:
-      name: resourceId
+      name: id
       in: path
       required: true
       description: ID único do recurso (UUID)
@@ -1749,7 +1631,7 @@ components:
         type: string
         format: uuid
     RoomId:
-      name: roomId
+      name: id
       in: path
       required: true
       description: ID único da sala
@@ -1938,16 +1820,6 @@ components:
         enabled:
           type: boolean
 
-    UserRolesRequest:
-      type: object
-      required:
-        - role_ids
-      properties:
-        role_ids:
-          type: array
-          items:
-            type: string
-
     RoleResponse:
       type: object
       properties:
@@ -2058,42 +1930,6 @@ components:
         position:
           type: string
         department:
-          type: string
-
-    TaskResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        description:
-          type: string
-        startDate:
-          type: string
-          format: date-time
-        endDate:
-          type: string
-          format: date-time
-        status:
-          type: string
-        employeeId:
-          type: string
-
-    TaskCreateRequest:
-      type: object
-      required:
-        - description
-        - startDate
-        - endDate
-      properties:
-        description:
-          type: string
-        startDate:
-          type: string
-          format: date-time
-        endDate:
-          type: string
-          format: date-time
-        status:
           type: string
 
     StudentResponse:
@@ -2268,9 +2104,11 @@ components:
           type: string
         course:
           type: object
+          description: Disciplina associada à turma
           properties:
             id:
               type: string
+              description: ID da disciplina
         createdAt:
           type: string
           format: date-time
@@ -2296,9 +2134,11 @@ components:
           type: string
         course:
           type: object
+          description: Disciplina associada à turma
           properties:
             id:
               type: string
+              description: ID da disciplina
 
     ClassUpdateRequest:
       type: object
@@ -2313,9 +2153,11 @@ components:
           type: string
         course:
           type: object
+          description: Disciplina associada à turma
           properties:
             id:
               type: string
+              description: ID da disciplina
 
     LessonResponse:
       type: object

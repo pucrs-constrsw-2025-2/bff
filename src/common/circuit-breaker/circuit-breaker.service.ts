@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import CircuitBreaker from 'opossum';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import type CircuitBreaker from 'opossum';
+
+// Use require to avoid ES module import issues with opossum
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const opossumModule = require('opossum');
+const CircuitBreakerConstructor: typeof CircuitBreaker = opossumModule.default || opossumModule;
 
 export interface CircuitBreakerOptions {
   timeout?: number;
@@ -46,7 +51,7 @@ export class CircuitBreakerService {
         ),
     };
 
-    const breaker = new CircuitBreaker(
+    const breaker = new CircuitBreakerConstructor(
       async (url: string, config: any) => {
         const response = await firstValueFrom(
           this.httpService.request({

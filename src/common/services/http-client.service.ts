@@ -15,7 +15,7 @@ export class HttpClientService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly circuitBreakerService: CircuitBreakerService,
-    @Inject(REQUEST) private readonly request: Request,
+    @Inject(REQUEST) private readonly expressRequest: Request,
   ) {}
 
   async request<T>(
@@ -36,7 +36,11 @@ export class HttpClientService {
       : `${baseUrl}${config.url || ''}`;
 
     // Extract Authorization header from the original request
-    const authorizationHeader = this.request?.headers?.authorization;
+    // Express normalizes headers to lowercase, and they can be string or string[]
+    const authHeader = this.expressRequest?.headers?.authorization;
+    const authorizationHeader = Array.isArray(authHeader) 
+      ? authHeader[0] 
+      : authHeader;
     
     const requestConfig: AxiosRequestConfig = {
       ...config,
