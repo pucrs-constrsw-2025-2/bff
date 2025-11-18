@@ -13,24 +13,24 @@ export class CoursesService {
     const queryString = params.toString();
     return this.httpClient.get(
       'courses',
-      `/api/v1/courses${queryString ? `?${queryString}` : ''}`,
+      `/courses${queryString ? `?${queryString}` : ''}`,
     );
   }
 
   async findOne(id: string) {
-    return this.httpClient.get('courses', `/api/v1/courses/${id}`);
+    return this.httpClient.get('courses', `/courses/${id}`);
   }
 
   async create(createDto: any) {
-    return this.httpClient.post('courses', '/api/v1/courses', createDto);
+    return this.httpClient.post('courses', '/courses', createDto);
   }
 
   async update(id: string, updateDto: any) {
-    return this.httpClient.put('courses', `/api/v1/courses/${id}`, updateDto);
+    return this.httpClient.put('courses', `/courses/${id}`, updateDto);
   }
 
   async remove(id: string) {
-    return this.httpClient.delete('courses', `/api/v1/courses/${id}`);
+    return this.httpClient.delete('courses', `/courses/${id}`);
   }
 }
 
