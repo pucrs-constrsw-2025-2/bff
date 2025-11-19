@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import CircuitBreaker from 'opossum';
+import CircuitBreaker = require('opossum');
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
