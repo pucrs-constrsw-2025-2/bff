@@ -21,6 +21,14 @@ export class LessonsService {
     return this.httpClient.put('lessons', `/api/v1/lessons/${id}`, updateDto);
   }
 
+  async updatePartial(id: string, updateDto: any) {
+    return this.httpClient.patch(
+      'lessons',
+      `/api/v1/lessons/${id}`,
+      updateDto,
+    );
+  }
+
   async remove(id: string) {
     return this.httpClient.delete('lessons', `/api/v1/lessons/${id}`);
   }
