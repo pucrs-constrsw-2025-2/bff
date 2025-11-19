@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from '/nestjs/common';
 import { HttpClientService } from '../common/services/http-client.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -11,7 +11,7 @@ export class RoomsService {
 
   async findAll(query: QueryRoomDto) {
     const params = new URLSearchParams();
-    Object.keys(query).forEach((key) => {
+    (Object.keys(query) as Array<keyof QueryRoomDto>).forEach((key) => {
       const value = query[key];
       if (value !== undefined && value !== null && value !== '') {
         params.append(key, String(value));
