@@ -1,11 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, Scope } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
 import { firstValueFrom, timeout, catchError } from 'rxjs';
 import { AxiosError, AxiosRequestConfig } from 'axios';
 import { CircuitBreakerService } from '../circuit-breaker/circuit-breaker.service';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class HttpClientService {
   private readonly logger = new Logger(HttpClientService.name);
 
@@ -13,6 +15,7 @@ export class HttpClientService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly circuitBreakerService: CircuitBreakerService,
+    @Inject(REQUEST) private readonly expressRequest: Request,
   ) {}
 
   async request<T>(
@@ -32,12 +35,20 @@ export class HttpClientService {
       ? config.url
       : `${baseUrl}${config.url || ''}`;
 
+    // Extract Authorization header from the original request
+    // Express normalizes headers to lowercase, and they can be string or string[]
+    const authHeader = this.expressRequest?.headers?.authorization;
+    const authorizationHeader = Array.isArray(authHeader) 
+      ? authHeader[0] 
+      : authHeader;
+    
     const requestConfig: AxiosRequestConfig = {
       ...config,
       url,
       timeout: requestTimeout,
       headers: {
         'Content-Type': 'application/json',
+        ...(authorizationHeader && { Authorization: authorizationHeader }),
         ...config.headers,
       },
     };

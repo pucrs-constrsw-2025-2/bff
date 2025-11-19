@@ -79,7 +79,7 @@ A BFF expõe endpoints para os seguintes recursos:
 - **Funcionários** (`/api/v1/employees/*`): Gerenciamento de funcionários e tarefas
 - **Estudantes** (`/api/v1/students/*`): Gerenciamento de estudantes
 - **Professores** (`/api/v1/professors/*`): Gerenciamento de professores
-- **Cursos** (`/api/v1/courses/*`): Gerenciamento de cursos
+- **Disciplinas** (`/api/v1/courses/*`): Gerenciamento de disciplinas
 - **Turmas** (`/api/v1/classes/*`): Gerenciamento de turmas
 - **Aulas** (`/api/v1/lessons/*`): Gerenciamento de aulas
 - **Reservas** (`/api/v1/reservations/*`): Gerenciamento de reservas
@@ -108,7 +108,7 @@ A BFF agrega os seguintes microserviços:
 2. **Employees** - Funcionários
 3. **Students** - Estudantes
 4. **Professors** - Professores
-5. **Courses** - Cursos
+5. **Courses** - Disciplinas
 6. **Classes** - Turmas
 7. **Lessons** - Aulas
 8. **Reservations** - Reservas
@@ -167,7 +167,7 @@ src/
 ├── employees/         # Módulo de funcionários
 ├── students/          # Módulo de estudantes
 ├── professors/        # Módulo de professores
-├── courses/           # Módulo de cursos
+├── courses/           # Módulo de disciplinas
 ├── classes/           # Módulo de turmas
 ├── lessons/           # Módulo de aulas
 ├── reservations/      # Módulo de reservas

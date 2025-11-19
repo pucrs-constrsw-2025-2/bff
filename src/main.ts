@@ -3,7 +3,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -116,7 +116,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document, {
+    SwaggerModule.setup('api/v1/docs', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
         tagsSorter: 'alpha',
@@ -129,7 +129,7 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(`🚀 BFF API is running on: http://localhost:${port}/api/v1`);
-  console.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
+  console.log(`📚 Swagger docs available at: http://localhost:${port}/api/v1/docs`);
 }
 
 bootstrap();
