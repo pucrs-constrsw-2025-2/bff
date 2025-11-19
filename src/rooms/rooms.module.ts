@@ -9,4 +9,3 @@ import { HttpClientModule } from '../common/services/http-client.module';
   providers: [RoomsService],
 })
 export class RoomsModule {}
-
