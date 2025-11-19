@@ -9,6 +9,8 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,11 +30,29 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: false,
+      forbidNonWhitelisted: false,
+      transform: true,
+    }),
+  )
   @ApiOperation({ summary: 'Listar usuários' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'size', required: false, type: Number })
   @ApiQuery({ name: 'enabled', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'Lista de usuários' })
-  async findAll(@Query() pagination: PaginationDto, @Query('enabled') enabled?: boolean) {
-    return this.usersService.findAll(pagination, enabled);
+  async findAll(
+    @Query('page') page?: string,
+    @Query('size') size?: string,
+    @Query('enabled') enabled?: string,
+  ) {
+    const pagination: PaginationDto = {
+      page: page ? parseInt(page, 10) : 1,
+      size: size ? parseInt(size, 10) : 10,
+    };
+    const enabledBool = enabled === 'true' ? true : enabled === 'false' ? false : undefined;
+    return this.usersService.findAll(pagination, enabledBool);
   }
 
   @Post()
