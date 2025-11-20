@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Patch,
+  Delete,
+  Param,
+  Body,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LessonsService } from './lessons.service';
 
@@ -29,6 +38,12 @@ export class LessonsController {
   @ApiOperation({ summary: 'Atualizar aula' })
   async update(@Param('id') id: string, @Body() updateDto: any) {
     return this.lessonsService.update(id, updateDto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Atualizar aula (parcial)' })
+  async updatePartial(@Param('id') id: string, @Body() updateDto: any) {
+    return this.lessonsService.updatePartial(id, updateDto);
   }
 
   @Delete(':id')
