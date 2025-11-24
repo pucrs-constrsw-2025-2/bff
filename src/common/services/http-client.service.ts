@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, Scope } from '@nestjs/common';
+import { Injectable, Logger, Inject, Scope, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
@@ -81,7 +81,30 @@ export class HttpClientService {
       return (response as any).data as T;
     } catch (error) {
       if (error instanceof AxiosError) {
-        throw error;
+        // Converte AxiosError em HttpException do NestJS
+        const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+        const message = error.response?.data?.detail || 
+                       error.response?.data?.message || 
+                       error.message || 
+                       'Internal server error';
+        
+        this.logger.error({
+          message: 'HTTP request failed',
+          service: serviceName,
+          url,
+          status,
+          statusText: error.response?.statusText,
+          error: message,
+        });
+
+        throw new HttpException(
+          {
+            message,
+            statusCode: status,
+            error: error.response?.data?.error || HttpStatus[status],
+          },
+          status,
+        );
       }
       throw error;
     }

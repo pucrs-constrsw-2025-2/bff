@@ -22,7 +22,7 @@ export class ProfessorsService {
   }
 
   async create(createDto: any) {
-    return this.httpClient.post('professors', '/api/v1/professors/', createDto);
+    return this.httpClient.post('professors', '/api/v1/professors', createDto);
   }
 
   async update(id: string, updateDto: any) {

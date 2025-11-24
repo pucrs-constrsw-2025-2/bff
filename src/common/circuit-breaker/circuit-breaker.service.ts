@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosError } from 'axios';
 import type CircuitBreaker from 'opossum';
 
 // Use require to avoid ES module import issues with opossum
@@ -18,6 +19,7 @@ export interface CircuitBreakerOptions {
 
 @Injectable()
 export class CircuitBreakerService {
+  private readonly logger = new Logger(CircuitBreakerService.name);
   private breakers: Map<string, CircuitBreaker> = new Map();
 
   constructor(
@@ -53,13 +55,34 @@ export class CircuitBreakerService {
 
     const breaker = new CircuitBreakerConstructor(
       async (url: string, config: any) => {
-        const response = await firstValueFrom(
-          this.httpService.request({
-            url,
-            ...config,
-          }),
-        );
-        return (response as any).data;
+        try {
+          const response = await firstValueFrom(
+            this.httpService.request({
+              url,
+              ...config,
+            }),
+          );
+          return (response as any).data;
+        } catch (error) {
+          // Se for um AxiosError, converte para HttpException para propagação correta
+          if (error instanceof AxiosError) {
+            const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+            const message = error.response?.data?.detail || 
+                           error.response?.data?.message || 
+                           error.message || 
+                           'Internal server error';
+            
+            throw new HttpException(
+              {
+                message,
+                statusCode: status,
+                error: error.response?.data?.error || HttpStatus[status],
+              },
+              status,
+            );
+          }
+          throw error;
+        }
       },
       {
         ...defaultOptions,
