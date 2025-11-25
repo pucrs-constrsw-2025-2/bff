@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { RoomsService } from './rooms.service';
 
@@ -19,22 +19,28 @@ export class RoomsController {
     return this.roomsService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':roomId')
   @ApiOperation({ summary: 'Buscar sala por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.roomsService.findOne(id);
+  async findOne(@Param('roomId') roomId: string) {
+    return this.roomsService.findOne(roomId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar sala' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.roomsService.update(id, updateDto);
+  @Put(':roomId')
+  @ApiOperation({ summary: 'Atualizar sala (completo)' })
+  async update(@Param('roomId') roomId: string, @Body() updateDto: any) {
+    return this.roomsService.update(roomId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':roomId')
+  @ApiOperation({ summary: 'Atualizar sala (parcial)' })
+  async patch(@Param('roomId') roomId: string, @Body() updateDto: any) {
+    return this.roomsService.patch(roomId, updateDto);
+  }
+
+  @Delete(':roomId')
   @ApiOperation({ summary: 'Deletar sala' })
-  async remove(@Param('id') id: string) {
-    return this.roomsService.remove(id);
+  async remove(@Param('roomId') roomId: string) {
+    return this.roomsService.remove(roomId);
   }
 }
 

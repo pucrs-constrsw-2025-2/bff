@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ProfessorsService } from './professors.service';
 
@@ -19,22 +19,22 @@ export class ProfessorsController {
     return this.professorsService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':professorId')
   @ApiOperation({ summary: 'Buscar professor por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.professorsService.findOne(id);
+  async findOne(@Param('professorId') professorId: string) {
+    return this.professorsService.findOne(professorId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar professor' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.professorsService.update(id, updateDto);
+  @Put(':professorId')
+  @ApiOperation({ summary: 'Atualizar professor (completo)' })
+  async update(@Param('professorId') professorId: string, @Body() updateDto: any) {
+    return this.professorsService.update(professorId, updateDto);
   }
 
-  @Delete(':id')
+  @Delete(':professorId')
   @ApiOperation({ summary: 'Deletar professor' })
-  async remove(@Param('id') id: string) {
-    return this.professorsService.remove(id);
+  async remove(@Param('professorId') professorId: string) {
+    return this.professorsService.remove(professorId);
   }
 }
 

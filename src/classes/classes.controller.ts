@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ClassesService } from './classes.service';
 
@@ -19,22 +19,28 @@ export class ClassesController {
     return this.classesService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':classId')
   @ApiOperation({ summary: 'Buscar turma por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.classesService.findOne(id);
+  async findOne(@Param('classId') classId: string) {
+    return this.classesService.findOne(classId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar turma' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.classesService.update(id, updateDto);
+  @Put(':classId')
+  @ApiOperation({ summary: 'Atualizar turma (completo)' })
+  async update(@Param('classId') classId: string, @Body() updateDto: any) {
+    return this.classesService.update(classId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':classId')
+  @ApiOperation({ summary: 'Atualizar turma (parcial - Dictionary)' })
+  async patch(@Param('classId') classId: string, @Body() updateDto: any) {
+    return this.classesService.patch(classId, updateDto);
+  }
+
+  @Delete(':classId')
   @ApiOperation({ summary: 'Deletar turma' })
-  async remove(@Param('id') id: string) {
-    return this.classesService.remove(id);
+  async remove(@Param('classId') classId: string) {
+    return this.classesService.remove(classId);
   }
 }
 

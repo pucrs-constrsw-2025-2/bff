@@ -163,12 +163,14 @@ export class HttpClientService {
   async delete<T>(
     serviceName: string,
     url: string,
+    data?: any,
     config?: AxiosRequestConfig,
   ): Promise<T> {
     return this.request<T>(serviceName, {
       ...config,
       method: 'DELETE',
       url,
+      data,
     });
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LessonsService } from './lessons.service';
 
@@ -19,22 +19,28 @@ export class LessonsController {
     return this.lessonsService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':lessonId')
   @ApiOperation({ summary: 'Buscar aula por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.lessonsService.findOne(id);
+  async findOne(@Param('lessonId') lessonId: string) {
+    return this.lessonsService.findOne(lessonId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar aula' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.lessonsService.update(id, updateDto);
+  @Put(':lessonId')
+  @ApiOperation({ summary: 'Atualizar aula (completo)' })
+  async update(@Param('lessonId') lessonId: string, @Body() updateDto: any) {
+    return this.lessonsService.update(lessonId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':lessonId')
+  @ApiOperation({ summary: 'Atualizar aula (parcial)' })
+  async patch(@Param('lessonId') lessonId: string, @Body() updateDto: any) {
+    return this.lessonsService.patch(lessonId, updateDto);
+  }
+
+  @Delete(':lessonId')
   @ApiOperation({ summary: 'Deletar aula' })
-  async remove(@Param('id') id: string) {
-    return this.lessonsService.remove(id);
+  async remove(@Param('lessonId') lessonId: string) {
+    return this.lessonsService.remove(lessonId);
   }
 }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 
@@ -19,22 +19,28 @@ export class RolesController {
     return this.rolesService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':roleId')
   @ApiOperation({ summary: 'Buscar role por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.rolesService.findOne(id);
+  async findOne(@Param('roleId') roleId: string) {
+    return this.rolesService.findOne(roleId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar role' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.rolesService.update(id, updateDto);
+  @Put(':roleId')
+  @ApiOperation({ summary: 'Atualizar role (completo)' })
+  async update(@Param('roleId') roleId: string, @Body() updateDto: any) {
+    return this.rolesService.update(roleId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':roleId')
+  @ApiOperation({ summary: 'Atualizar role (parcial)' })
+  async patch(@Param('roleId') roleId: string, @Body() updateDto: any) {
+    return this.rolesService.patch(roleId, updateDto);
+  }
+
+  @Delete(':roleId')
   @ApiOperation({ summary: 'Excluir role' })
-  async remove(@Param('id') id: string) {
-    return this.rolesService.remove(id);
+  async remove(@Param('roleId') roleId: string) {
+    return this.rolesService.remove(roleId);
   }
 }
 

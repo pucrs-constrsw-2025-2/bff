@@ -20,20 +20,24 @@ export class ClassesService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('classes', `/api/v1/classes/${id}`);
+  async findOne(classId: string) {
+    return this.httpClient.get('classes', `/api/v1/classes/${classId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('classes', '/api/v1/classes', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('classes', `/api/v1/classes/${id}`, updateDto);
+  async update(classId: string, updateDto: any) {
+    return this.httpClient.put('classes', `/api/v1/classes/${classId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('classes', `/api/v1/classes/${id}`);
+  async patch(classId: string, updateDto: any) {
+    return this.httpClient.patch('classes', `/api/v1/classes/${classId}`, updateDto);
+  }
+
+  async remove(classId: string) {
+    return this.httpClient.delete('classes', `/api/v1/classes/${classId}`);
   }
 }
 

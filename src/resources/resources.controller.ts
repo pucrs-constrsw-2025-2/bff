@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
 
@@ -19,22 +19,34 @@ export class ResourcesController {
     return this.resourcesService.create(createDto);
   }
 
-  @Get(':id')
+  @Get('category/:categoryId')
+  @ApiOperation({ summary: 'Buscar recursos por categoria' })
+  async getResourcesByCategory(@Param('categoryId') categoryId: string) {
+    return this.resourcesService.getResourcesByCategory(categoryId);
+  }
+
+  @Get(':resourceId')
   @ApiOperation({ summary: 'Buscar recurso por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.resourcesService.findOne(id);
+  async findOne(@Param('resourceId') resourceId: string) {
+    return this.resourcesService.findOne(resourceId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar recurso' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.resourcesService.update(id, updateDto);
+  @Put(':resourceId')
+  @ApiOperation({ summary: 'Atualizar recurso (completo)' })
+  async update(@Param('resourceId') resourceId: string, @Body() updateDto: any) {
+    return this.resourcesService.update(resourceId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':resourceId')
+  @ApiOperation({ summary: 'Atualizar recurso (parcial)' })
+  async patch(@Param('resourceId') resourceId: string, @Body() updateDto: any) {
+    return this.resourcesService.patch(resourceId, updateDto);
+  }
+
+  @Delete(':resourceId')
   @ApiOperation({ summary: 'Deletar recurso' })
-  async remove(@Param('id') id: string) {
-    return this.resourcesService.remove(id);
+  async remove(@Param('resourceId') resourceId: string) {
+    return this.resourcesService.remove(resourceId);
   }
 }
 

@@ -20,20 +20,24 @@ export class ReservationsService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('reservations', `/api/v1/reservations/${id}`);
+  async findOne(reservationId: string) {
+    return this.httpClient.get('reservations', `/api/v1/reservations/${reservationId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('reservations', '/api/v1/reservations', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('reservations', `/api/v1/reservations/${id}`, updateDto);
+  async update(reservationId: string, updateDto: any) {
+    return this.httpClient.put('reservations', `/api/v1/reservations/${reservationId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('reservations', `/api/v1/reservations/${id}`);
+  async patch(reservationId: string, updateDto: any) {
+    return this.httpClient.patch('reservations', `/api/v1/reservations/${reservationId}`, updateDto);
+  }
+
+  async remove(reservationId: string) {
+    return this.httpClient.delete('reservations', `/api/v1/reservations/${reservationId}`);
   }
 }
 

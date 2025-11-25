@@ -20,20 +20,24 @@ export class RoomsService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('rooms', `/api/v1/rooms/${id}`);
+  async findOne(roomId: string) {
+    return this.httpClient.get('rooms', `/api/v1/rooms/${roomId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('rooms', '/api/v1/rooms', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('rooms', `/api/v1/rooms/${id}`, updateDto);
+  async update(roomId: string, updateDto: any) {
+    return this.httpClient.put('rooms', `/api/v1/rooms/${roomId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('rooms', `/api/v1/rooms/${id}`);
+  async patch(roomId: string, updateDto: any) {
+    return this.httpClient.patch('rooms', `/api/v1/rooms/${roomId}`, updateDto);
+  }
+
+  async remove(roomId: string) {
+    return this.httpClient.delete('rooms', `/api/v1/rooms/${roomId}`);
   }
 }
 

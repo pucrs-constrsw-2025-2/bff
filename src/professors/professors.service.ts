@@ -17,20 +17,20 @@ export class ProfessorsService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('professors', `/api/v1/professors/${id}`);
+  async findOne(professorId: string) {
+    return this.httpClient.get('professors', `/api/v1/professors/${professorId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('professors', '/api/v1/professors', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('professors', `/api/v1/professors/${id}`, updateDto);
+  async update(professorId: string, updateDto: any) {
+    return this.httpClient.put('professors', `/api/v1/professors/${professorId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('professors', `/api/v1/professors/${id}`);
+  async remove(professorId: string) {
+    return this.httpClient.delete('professors', `/api/v1/professors/${professorId}`);
   }
 }
 

@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -81,6 +82,47 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(userId, updateUserDto);
+  }
+
+  @Get(':userId/roles')
+  @ApiOperation({ summary: 'Listar roles de um usuário' })
+  @ApiParam({ name: 'userId', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Lista de roles do usuário' })
+  async getUserRoles(@Param('userId') userId: string) {
+    return this.usersService.getUserRoles(userId);
+  }
+
+  @Post(':userId/roles')
+  @ApiOperation({ summary: 'Atribuir roles a um usuário' })
+  @ApiParam({ name: 'userId', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Roles atribuídos com sucesso' })
+  async assignRolesToUser(
+    @Param('userId') userId: string,
+    @Body() body: { roleIds: string[] },
+  ) {
+    return this.usersService.assignRolesToUser(userId, body.roleIds);
+  }
+
+  @Delete(':userId/roles')
+  @ApiOperation({ summary: 'Remover roles de um usuário' })
+  @ApiParam({ name: 'userId', description: 'ID do usuário' })
+  @ApiResponse({ status: 204, description: 'Roles removidos com sucesso' })
+  async removeRolesFromUser(
+    @Param('userId') userId: string,
+    @Body() body: { roleIds: string[] },
+  ) {
+    return this.usersService.removeRolesFromUser(userId, body.roleIds);
+  }
+
+  @Patch(':userId')
+  @ApiOperation({ summary: 'Atualizar senha de um usuário' })
+  @ApiParam({ name: 'userId', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Senha atualizada' })
+  async updatePassword(
+    @Param('userId') userId: string,
+    @Body() updatePasswordDto: { password: string },
+  ) {
+    return this.usersService.updatePassword(userId, updatePasswordDto);
   }
 
   @Delete(':userId')

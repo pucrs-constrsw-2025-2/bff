@@ -17,20 +17,36 @@ export class CoursesService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('courses', `/api/v1/courses/${id}`);
+  async findOne(courseId: string) {
+    return this.httpClient.get('courses', `/api/v1/courses/${courseId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('courses', '/api/v1/courses', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('courses', `/api/v1/courses/${id}`, updateDto);
+  async update(courseId: string, updateDto: any) {
+    return this.httpClient.put('courses', `/api/v1/courses/${courseId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('courses', `/api/v1/courses/${id}`);
+  async patch(courseId: string, updateDto: any) {
+    return this.httpClient.patch('courses', `/api/v1/courses/${courseId}`, updateDto);
+  }
+
+  async remove(courseId: string) {
+    return this.httpClient.delete('courses', `/api/v1/courses/${courseId}`);
+  }
+
+  async getCourseClasses(courseId: string, query: any) {
+    const params = new URLSearchParams();
+    if (query.semester) params.append('semester', query.semester);
+    if (query.year) params.append('year', query.year);
+
+    const queryString = params.toString();
+    return this.httpClient.get(
+      'courses',
+      `/api/v1/courses/${courseId}/classes${queryString ? `?${queryString}` : ''}`,
+    );
   }
 }
 

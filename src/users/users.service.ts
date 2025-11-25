@@ -54,9 +54,59 @@ export class UsersService {
     }
   }
 
+  async updatePassword(userId: string, updatePasswordDto: { password: string }) {
+    try {
+      return await this.httpClient.patch(
+        'oauth',
+        `/api/v1/users/${userId}`,
+        updatePasswordDto,
+      );
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+      }
+      throw error;
+    }
+  }
+
   async remove(userId: string) {
     try {
       return await this.httpClient.delete('oauth', `/api/v1/users/${userId}`);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+      }
+      throw error;
+    }
+  }
+
+  async getUserRoles(userId: string) {
+    try {
+      return await this.httpClient.get('oauth', `/api/v1/users/${userId}/roles`);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+      }
+      throw error;
+    }
+  }
+
+  async assignRolesToUser(userId: string, roleIds: string[]) {
+    try {
+      // O OAuth service espera role_ids (snake_case)
+      return await this.httpClient.post('oauth', `/api/v1/users/${userId}/roles`, { role_ids: roleIds });
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+      }
+      throw error;
+    }
+  }
+
+  async removeRolesFromUser(userId: string, roleIds: string[]) {
+    try {
+      // O OAuth service usa DELETE com body (role_ids)
+      return await this.httpClient.delete('oauth', `/api/v1/users/${userId}/roles`, { role_ids: roleIds });
     } catch (error: any) {
       if (error.response?.status === 404) {
         throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);

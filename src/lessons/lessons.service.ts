@@ -9,20 +9,24 @@ export class LessonsService {
     return this.httpClient.get('lessons', '/api/v1/lessons');
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('lessons', `/api/v1/lessons/${id}`);
+  async findOne(lessonId: string) {
+    return this.httpClient.get('lessons', `/api/v1/lessons/${lessonId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('lessons', '/api/v1/lessons', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('lessons', `/api/v1/lessons/${id}`, updateDto);
+  async update(lessonId: string, updateDto: any) {
+    return this.httpClient.put('lessons', `/api/v1/lessons/${lessonId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('lessons', `/api/v1/lessons/${id}`);
+  async patch(lessonId: string, updateDto: any) {
+    return this.httpClient.patch('lessons', `/api/v1/lessons/${lessonId}`, updateDto);
+  }
+
+  async remove(lessonId: string) {
+    return this.httpClient.delete('lessons', `/api/v1/lessons/${lessonId}`);
   }
 }
 

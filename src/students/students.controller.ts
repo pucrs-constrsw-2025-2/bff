@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { StudentsService } from './students.service';
 
@@ -19,22 +19,28 @@ export class StudentsController {
     return this.studentsService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':studentId')
   @ApiOperation({ summary: 'Buscar estudante por ID' })
-  async findOne(@Param('id') id: string) {
-    return this.studentsService.findOne(id);
+  async findOne(@Param('studentId') studentId: string) {
+    return this.studentsService.findOne(studentId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar estudante' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.studentsService.update(id, updateDto);
+  @Put(':studentId')
+  @ApiOperation({ summary: 'Atualizar estudante (completo)' })
+  async update(@Param('studentId') studentId: string, @Body() updateDto: any) {
+    return this.studentsService.update(studentId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':studentId')
+  @ApiOperation({ summary: 'Atualizar estudante (parcial - JSON Patch)' })
+  async patch(@Param('studentId') studentId: string, @Body() patchDto: any) {
+    return this.studentsService.patch(studentId, patchDto);
+  }
+
+  @Delete(':studentId')
   @ApiOperation({ summary: 'Deletar estudante' })
-  async remove(@Param('id') id: string) {
-    return this.studentsService.remove(id);
+  async remove(@Param('studentId') studentId: string) {
+    return this.studentsService.remove(studentId);
   }
 }
 

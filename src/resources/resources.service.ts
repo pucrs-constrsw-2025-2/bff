@@ -16,20 +16,28 @@ export class ResourcesService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('resources', `/api/v1/resources/${id}`);
+  async findOne(resourceId: string) {
+    return this.httpClient.get('resources', `/api/v1/resources/${resourceId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('resources', '/api/v1/resources', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('resources', `/api/v1/resources/${id}`, updateDto);
+  async update(resourceId: string, updateDto: any) {
+    return this.httpClient.put('resources', `/api/v1/resources/${resourceId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('resources', `/api/v1/resources/${id}`);
+  async patch(resourceId: string, updateDto: any) {
+    return this.httpClient.patch('resources', `/api/v1/resources/${resourceId}`, updateDto);
+  }
+
+  async remove(resourceId: string) {
+    return this.httpClient.delete('resources', `/api/v1/resources/${resourceId}`);
+  }
+
+  async getResourcesByCategory(categoryId: string) {
+    return this.httpClient.get('resources', `/api/v1/resources/category/${categoryId}`);
   }
 }
 

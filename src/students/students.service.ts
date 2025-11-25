@@ -18,20 +18,24 @@ export class StudentsService {
     );
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('students', `/api/v1/students/${id}`);
+  async findOne(studentId: string) {
+    return this.httpClient.get('students', `/api/v1/students/${studentId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('students', '/api/v1/students', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('students', `/api/v1/students/${id}`, updateDto);
+  async update(studentId: string, updateDto: any) {
+    return this.httpClient.put('students', `/api/v1/students/${studentId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('students', `/api/v1/students/${id}`);
+  async patch(studentId: string, patchDto: any) {
+    return this.httpClient.patch('students', `/api/v1/students/${studentId}`, patchDto);
+  }
+
+  async remove(studentId: string) {
+    return this.httpClient.delete('students', `/api/v1/students/${studentId}`);
   }
 }
 

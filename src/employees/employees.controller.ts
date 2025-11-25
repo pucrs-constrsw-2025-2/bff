@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -34,24 +35,30 @@ export class EmployeesController {
     return this.employeesService.create(createDto);
   }
 
-  @Get(':id')
+  @Get(':employeeId')
   @ApiOperation({ summary: 'Buscar funcionário por ID' })
   @ApiResponse({ status: 200, description: 'Dados do funcionário' })
-  async findOne(@Param('id') id: string) {
-    return this.employeesService.findOne(id);
+  async findOne(@Param('employeeId') employeeId: string) {
+    return this.employeesService.findOne(employeeId);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Atualizar funcionário' })
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    return this.employeesService.update(id, updateDto);
+  @Put(':employeeId')
+  @ApiOperation({ summary: 'Atualizar funcionário (completo)' })
+  async update(@Param('employeeId') employeeId: string, @Body() updateDto: any) {
+    return this.employeesService.update(employeeId, updateDto);
   }
 
-  @Delete(':id')
+  @Patch(':employeeId')
+  @ApiOperation({ summary: 'Atualizar funcionário (parcial)' })
+  async patch(@Param('employeeId') employeeId: string, @Body() updateDto: any) {
+    return this.employeesService.patch(employeeId, updateDto);
+  }
+
+  @Delete(':employeeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar funcionário' })
-  async remove(@Param('id') id: string) {
-    return this.employeesService.remove(id);
+  async remove(@Param('employeeId') employeeId: string) {
+    return this.employeesService.remove(employeeId);
   }
 }
 

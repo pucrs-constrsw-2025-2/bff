@@ -354,7 +354,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /roles/{id}:
+  /roles/{roleId}:
     get:
       tags:
         - Roles
@@ -403,6 +403,33 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Roles
+      summary: Atualizar role (parcial)
+      description: Atualiza parcialmente os dados de um role
+      operationId: patchRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+      responses:
+        '200':
+          description: Role atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Roles
@@ -416,6 +443,119 @@ paths:
       responses:
         '204':
           description: Role excluído com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/{userId}/roles:
+    get:
+      tags:
+        - Users
+      summary: Listar roles de um usuário
+      operationId: getUserRoles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Lista de roles do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Users
+      summary: Atribuir roles a um usuário
+      operationId: assignRolesToUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roleIds
+              properties:
+                roleIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Roles atribuídos com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Users
+      summary: Remover roles de um usuário
+      operationId: removeRolesFromUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roleIds
+              properties:
+                roleIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Roles removidos com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/{userId}:
+    patch:
+      tags:
+        - Users
+      summary: Atualizar senha de um usuário
+      description: Atualiza a senha de um usuário
+      operationId: updateUserPassword
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Senha atualizada com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -484,7 +624,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /employees/{id}:
+  /employees/{employeeId}:
     get:
       tags:
         - Employees
@@ -532,6 +672,32 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Employees
+      summary: Atualizar funcionário (parcial)
+      operationId: patchEmployee
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateRequest'
+      responses:
+        '200':
+          description: Funcionário atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Employees
@@ -544,6 +710,176 @@ paths:
       responses:
         '204':
           description: Funcionário deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /employees/{employeeId}/tasks:
+    get:
+      tags:
+        - Employees
+      summary: Listar tarefas de um funcionário
+      operationId: listEmployeeTasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: description
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Lista de tarefas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Employees
+      summary: Criar tarefa para um funcionário
+      operationId: createEmployeeTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+      responses:
+        '201':
+          description: Tarefa criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /employees/{employeeId}/tasks/{taskId}:
+    get:
+      tags:
+        - Employees
+      summary: Buscar tarefa específica
+      operationId: getEmployeeTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Dados da tarefa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Employees
+      summary: Atualizar tarefa (completo)
+      operationId: updateEmployeeTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: Tarefa atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Employees
+      summary: Atualizar tarefa (parcial)
+      operationId: patchEmployeeTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: Tarefa atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Employees
+      summary: Deletar tarefa
+      operationId: deleteEmployeeTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '204':
+          description: Tarefa deletada com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -608,7 +944,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /students/{id}:
+  /students/{studentId}:
     get:
       tags:
         - Students
@@ -651,6 +987,42 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Students
+      summary: Atualizar estudante (parcial - JSON Patch)
+      operationId: patchStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  op:
+                    type: string
+                    enum: [add, remove, replace, copy, move, test]
+                  path:
+                    type: string
+                  value:
+                    type: string
+      responses:
+        '200':
+          description: Estudante atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Students
@@ -663,6 +1035,152 @@ paths:
       responses:
         '204':
           description: Estudante deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /students/{studentId}/phone-numbers:
+    get:
+      tags:
+        - Students
+      summary: Listar telefones de um estudante
+      operationId: listStudentPhoneNumbers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Lista de telefones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhoneNumberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Students
+      summary: Adicionar telefone a um estudante
+      operationId: createStudentPhoneNumber
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneNumberCreateRequest'
+      responses:
+        '201':
+          description: Telefone adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumberResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /students/{studentId}/phone-numbers/{phoneNumberId}:
+    get:
+      tags:
+        - Students
+      summary: Buscar telefone específico por ID
+      operationId: getStudentPhoneNumber
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+        - $ref: '#/components/parameters/PhoneNumberId'
+      responses:
+        '200':
+          description: Dados do telefone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Students
+      summary: Atualizar telefone (completo)
+      operationId: updateStudentPhoneNumber
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+        - $ref: '#/components/parameters/PhoneNumberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneNumberUpdateRequest'
+      responses:
+        '200':
+          description: Telefone atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Students
+      summary: Atualizar telefone (parcial)
+      operationId: patchStudentPhoneNumber
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+        - $ref: '#/components/parameters/PhoneNumberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneNumberUpdateRequest'
+      responses:
+        '200':
+          description: Telefone atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneNumberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Students
+      summary: Deletar telefone
+      operationId: deleteStudentPhoneNumber
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+        - $ref: '#/components/parameters/PhoneNumberId'
+      responses:
+        '204':
+          description: Telefone deletado com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -722,7 +1240,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /professors/{id}:
+  /professors/{professorId}:
     get:
       tags:
         - Professors
@@ -786,6 +1304,196 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
+  /professors/{professorId}/classes:
+    get:
+      tags:
+        - Professors
+      summary: Listar classes de um professor
+      operationId: listProfessorClasses
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      responses:
+        '200':
+          description: Lista de classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Professors
+      summary: Associar professor a uma classe
+      operationId: associateProfessorToClass
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - classId
+              properties:
+                classId:
+                  type: string
+      responses:
+        '200':
+          description: Professor associado com sucesso
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /professors/{professorId}/classes/{classId}:
+    delete:
+      tags:
+        - Professors
+      summary: Desassociar professor de uma classe
+      operationId: disassociateProfessorFromClass
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+        - $ref: '#/components/parameters/ClassId'
+      responses:
+        '204':
+          description: Professor desassociado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /professors/{professorId}/graduations:
+    get:
+      tags:
+        - Professors
+      summary: Listar graduações de um professor
+      operationId: listProfessorGraduations
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      responses:
+        '200':
+          description: Lista de graduações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GraduationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Professors
+      summary: Criar graduação para um professor
+      operationId: createProfessorGraduation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraduationCreateRequest'
+      responses:
+        '201':
+          description: Graduação criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraduationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /professors/{professorId}/graduations/{graduationId}:
+    put:
+      tags:
+        - Professors
+      summary: Atualizar graduação
+      operationId: updateProfessorGraduation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+        - $ref: '#/components/parameters/GraduationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraduationUpdateRequest'
+      responses:
+        '200':
+          description: Graduação atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraduationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Professors
+      summary: Excluir graduação
+      operationId: deleteProfessorGraduation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProfessorId'
+        - $ref: '#/components/parameters/GraduationId'
+      responses:
+        '204':
+          description: Graduação excluída com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /graduations:
+    get:
+      tags:
+        - Professors
+      summary: Listar todas as graduações do sistema
+      operationId: listAllGraduations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de graduações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GraduationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
   /courses:
     get:
       tags:
@@ -841,7 +1549,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /courses/{id}:
+  /courses/{courseId}:
     get:
       tags:
         - Courses
@@ -888,6 +1596,32 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Courses
+      summary: Atualizar disciplina (parcial)
+      operationId: patchCourse
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdateRequest'
+      responses:
+        '200':
+          description: Disciplina atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Courses
@@ -900,6 +1634,188 @@ paths:
       responses:
         '204':
           description: Disciplina deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /courses/{courseId}/materials:
+    get:
+      tags:
+        - Courses
+      summary: Listar materiais de um curso
+      operationId: listCourseMaterials
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de materiais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Courses
+      summary: Adicionar material a um curso
+      operationId: createCourseMaterial
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialCreateRequest'
+      responses:
+        '201':
+          description: Material adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /courses/{courseId}/materials/{materialId}:
+    get:
+      tags:
+        - Courses
+      summary: Buscar material específico
+      operationId: getCourseMaterial
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - $ref: '#/components/parameters/MaterialId'
+      responses:
+        '200':
+          description: Dados do material
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Courses
+      summary: Atualizar material (completo)
+      operationId: updateCourseMaterial
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - $ref: '#/components/parameters/MaterialId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialUpdateRequest'
+      responses:
+        '200':
+          description: Material atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Courses
+      summary: Atualizar material (parcial)
+      operationId: patchCourseMaterial
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - $ref: '#/components/parameters/MaterialId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialUpdateRequest'
+      responses:
+        '200':
+          description: Material atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Courses
+      summary: Deletar material
+      operationId: deleteCourseMaterial
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - $ref: '#/components/parameters/MaterialId'
+      responses:
+        '204':
+          description: Material deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /courses/{courseId}/classes:
+    get:
+      tags:
+        - Courses
+      summary: Buscar turmas de um curso
+      operationId: getCourseClasses
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - name: semester
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de turmas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -974,7 +1890,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /classes/{id}:
+  /classes/{classId}:
     get:
       tags:
         - Classes
@@ -1021,6 +1937,33 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Classes
+      summary: Atualizar turma (parcial - Dictionary)
+      operationId: patchClass
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Turma atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Classes
@@ -1033,6 +1976,153 @@ paths:
       responses:
         '204':
           description: Turma deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /classes/{classId}/exams:
+    get:
+      tags:
+        - Classes
+      summary: Listar provas da classe
+      operationId: listClassExams
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      responses:
+        '200':
+          description: Lista de provas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Classes
+      summary: Adicionar prova à classe
+      operationId: createClassExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCreateRequest'
+      responses:
+        '201':
+          description: Prova adicionada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /classes/{classId}/exams/{examId}:
+    get:
+      tags:
+        - Classes
+      summary: Obter prova por ID
+      operationId: getClassExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+        - $ref: '#/components/parameters/ExamId'
+      responses:
+        '200':
+          description: Dados da prova
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Classes
+      summary: Atualizar prova (completo)
+      operationId: updateClassExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+        - $ref: '#/components/parameters/ExamId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamUpdateRequest'
+      responses:
+        '200':
+          description: Prova atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Classes
+      summary: Atualizar prova (parcial - Dictionary)
+      operationId: patchClassExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+        - $ref: '#/components/parameters/ExamId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Prova atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Classes
+      summary: Excluir prova
+      operationId: deleteClassExam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ClassId'
+        - $ref: '#/components/parameters/ExamId'
+      responses:
+        '204':
+          description: Prova excluída com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -1084,7 +2174,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /lessons/{id}:
+  /lessons/{lessonId}:
     get:
       tags:
         - Lessons
@@ -1131,6 +2221,32 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Lessons
+      summary: Atualizar aula (parcial)
+      operationId: patchLesson
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LessonUpdateRequest'
+      responses:
+        '200':
+          description: Aula atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Lessons
@@ -1143,6 +2259,152 @@ paths:
       responses:
         '204':
           description: Aula deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /lessons/{lessonId}/subjects:
+    get:
+      tags:
+        - Lessons
+      summary: Listar assuntos de uma aula
+      operationId: listLessonSubjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+      responses:
+        '200':
+          description: Lista de assuntos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Lessons
+      summary: Criar assunto para uma aula
+      operationId: createLessonSubject
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectCreateRequest'
+      responses:
+        '201':
+          description: Assunto criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /lessons/{lessonId}/subjects/{subjectId}:
+    get:
+      tags:
+        - Lessons
+      summary: Buscar assunto específico
+      operationId: getLessonSubject
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+        - $ref: '#/components/parameters/SubjectId'
+      responses:
+        '200':
+          description: Dados do assunto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Lessons
+      summary: Atualizar assunto (completo)
+      operationId: updateLessonSubject
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+        - $ref: '#/components/parameters/SubjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectUpdateRequest'
+      responses:
+        '200':
+          description: Assunto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Lessons
+      summary: Atualizar assunto (parcial)
+      operationId: patchLessonSubject
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+        - $ref: '#/components/parameters/SubjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectUpdateRequest'
+      responses:
+        '200':
+          description: Assunto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Lessons
+      summary: Deletar assunto
+      operationId: deleteLessonSubject
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LessonId'
+        - $ref: '#/components/parameters/SubjectId'
+      responses:
+        '204':
+          description: Assunto deletado com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -1224,7 +2486,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /reservations/{id}:
+  /reservations/{reservationId}:
     get:
       tags:
         - Reservations
@@ -1271,6 +2533,32 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Reservations
+      summary: Atualizar reserva (parcial)
+      operationId: patchReservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationUpdateRequest'
+      responses:
+        '200':
+          description: Reserva atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Reservations
@@ -1283,6 +2571,152 @@ paths:
       responses:
         '200':
           description: Reserva removida com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /reservations/{reservationId}/authorized-users:
+    get:
+      tags:
+        - Reservations
+      summary: Listar usuários autorizados de uma reserva
+      operationId: listReservationAuthorizedUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: Lista de usuários autorizados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthorizedUserResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Reservations
+      summary: Adicionar usuário autorizado à reserva
+      operationId: createReservationAuthorizedUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizedUserCreateRequest'
+      responses:
+        '201':
+          description: Usuário autorizado adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedUserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /reservations/{reservationId}/authorized-users/{authorizedUserId}:
+    get:
+      tags:
+        - Reservations
+      summary: Buscar usuário autorizado específico
+      operationId: getReservationAuthorizedUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+        - $ref: '#/components/parameters/AuthorizedUserId'
+      responses:
+        '200':
+          description: Dados do usuário autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedUserResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Reservations
+      summary: Atualizar usuário autorizado (completo)
+      operationId: updateReservationAuthorizedUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+        - $ref: '#/components/parameters/AuthorizedUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizedUserUpdateRequest'
+      responses:
+        '200':
+          description: Usuário autorizado atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedUserResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Reservations
+      summary: Atualizar usuário autorizado (parcial)
+      operationId: patchReservationAuthorizedUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+        - $ref: '#/components/parameters/AuthorizedUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizedUserUpdateRequest'
+      responses:
+        '200':
+          description: Usuário autorizado atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedUserResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Reservations
+      summary: Remover usuário autorizado da reserva
+      operationId: deleteReservationAuthorizedUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+        - $ref: '#/components/parameters/AuthorizedUserId'
+      responses:
+        '204':
+          description: Usuário autorizado removido com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -1338,7 +2772,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /resources/{id}:
+  /resources/{resourceId}:
     get:
       tags:
         - Resources
@@ -1385,6 +2819,32 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Resources
+      summary: Atualizar recurso (parcial)
+      operationId: patchResource
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceUpdateRequest'
+      responses:
+        '200':
+          description: Recurso atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Resources
@@ -1399,6 +2859,728 @@ paths:
           description: Recurso deletado com sucesso
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /resources/category/{categoryId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar recursos por categoria
+      operationId: getResourcesByCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Lista de recursos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /categories:
+    get:
+      tags:
+        - Resources
+      summary: Listar todas as categorias
+      operationId: listCategories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar uma nova categoria
+      operationId: createCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+      responses:
+        '201':
+          description: Categoria criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /categories/{categoryId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar categoria por ID
+      operationId: getCategoryById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Dados da categoria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Resources
+      summary: Atualizar categoria (parcial)
+      operationId: patchCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdateRequest'
+      responses:
+        '200':
+          description: Categoria atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Resources
+      summary: Substituir categoria (completo)
+      operationId: replaceCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdateRequest'
+      responses:
+        '200':
+          description: Categoria substituída com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Resources
+      summary: Deletar categoria
+      operationId: deleteCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '204':
+          description: Categoria deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /categories/{categoryId}/resources:
+    get:
+      tags:
+        - Resources
+      summary: Listar recursos de uma categoria
+      operationId: getCategoryResources
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Lista de recursos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar recurso em uma categoria
+      operationId: createCategoryResource
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceCreateRequest'
+      responses:
+        '201':
+          description: Recurso criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /categories/{categoryId}/features:
+    get:
+      tags:
+        - Resources
+      summary: Listar features de uma categoria
+      operationId: getCategoryFeatures
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Lista de features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar feature em uma categoria
+      operationId: createCategoryFeature
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureCreateRequest'
+      responses:
+        '201':
+          description: Feature criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /features:
+    get:
+      tags:
+        - Resources
+      summary: Listar todas as features
+      operationId: listFeatures
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar uma nova feature
+      operationId: createFeature
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureCreateRequest'
+      responses:
+        '201':
+          description: Feature criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /features/{featureId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar feature por ID
+      operationId: getFeatureById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureId'
+      responses:
+        '200':
+          description: Dados da feature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Resources
+      summary: Atualizar feature (parcial)
+      operationId: patchFeature
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureUpdateRequest'
+      responses:
+        '200':
+          description: Feature atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Resources
+      summary: Substituir feature (completo)
+      operationId: replaceFeature
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureUpdateRequest'
+      responses:
+        '200':
+          description: Feature substituída com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Resources
+      summary: Deletar feature
+      operationId: deleteFeature
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureId'
+      responses:
+        '204':
+          description: Feature deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /features/category/{categoryId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar features por categoria
+      operationId: getFeaturesByCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Lista de features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /feature-values:
+    get:
+      tags:
+        - Resources
+      summary: Listar todos os feature values
+      operationId: listFeatureValues
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de feature values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureValueResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar um novo feature value
+      operationId: createFeatureValue
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureValueCreateRequest'
+      responses:
+        '201':
+          description: Feature value criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureValueResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /feature-values/{featureValueId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar feature value por ID
+      operationId: getFeatureValueById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureValueId'
+      responses:
+        '200':
+          description: Dados do feature value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Resources
+      summary: Atualizar feature value (parcial)
+      operationId: patchFeatureValue
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureValueId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureValueUpdateRequest'
+      responses:
+        '200':
+          description: Feature value atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Resources
+      summary: Deletar feature value
+      operationId: deleteFeatureValue
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureValueId'
+      responses:
+        '204':
+          description: Feature value deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /feature-values/resource/{resourceId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar feature values por recurso
+      operationId: getFeatureValuesByResource
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Lista de feature values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /feature-values/feature/{featureId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar feature values por feature
+      operationId: getFeatureValuesByFeature
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FeatureId'
+      responses:
+        '200':
+          description: Lista de feature values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /feature-values/resources/{resourceId}/features:
+    get:
+      tags:
+        - Resources
+      summary: Listar feature values de um recurso
+      operationId: listResourceFeatureValues
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Lista de feature values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Resources
+      summary: Criar feature value para um recurso
+      operationId: createResourceFeatureValue
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureValueCreateRequest'
+      responses:
+        '201':
+          description: Feature value criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureValueResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /feature-values/resources/{resourceId}/features/{featureValueId}:
+    get:
+      tags:
+        - Resources
+      summary: Buscar feature value específico
+      operationId: getResourceFeatureValue
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/FeatureValueId'
+      responses:
+        '200':
+          description: Dados do feature value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Resources
+      summary: Atualizar feature value
+      operationId: patchResourceFeatureValue
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/FeatureValueId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureValueUpdateRequest'
+      responses:
+        '200':
+          description: Feature value atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureValueResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Resources
+      summary: Deletar feature value
+      operationId: deleteResourceFeatureValue
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/FeatureValueId'
+      responses:
+        '204':
+          description: Feature value deletado com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /value-types:
+    get:
+      tags:
+        - Resources
+      summary: Listar tipos de valores disponíveis (enum)
+      operationId: listValueTypes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de tipos de valores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum: [STRING, NUMBER, BOOLEAN, DATE]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
@@ -1483,7 +3665,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /rooms/{id}:
+  /rooms/{roomId}:
     get:
       tags:
         - Rooms
@@ -1530,6 +3712,32 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Rooms
+      summary: Atualizar sala (parcial)
+      operationId: patchRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomUpdateRequest'
+      responses:
+        '200':
+          description: Sala atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Rooms
@@ -1542,6 +3750,128 @@ paths:
       responses:
         '204':
           description: Sala deletada com sucesso
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /rooms/{roomId}/furnitures:
+    get:
+      tags:
+        - Rooms
+      summary: Listar mobílias (scaffold - retorna 501)
+      operationId: listRoomFurnitures
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '501':
+          description: Não implementado
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Rooms
+      summary: Criar mobília (scaffold - retorna 501)
+      operationId: createRoomFurniture
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '501':
+          description: Não implementado
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /rooms/{roomId}/furnitures/{furnitureId}:
+    get:
+      tags:
+        - Rooms
+      summary: Buscar mobília (scaffold - retorna 501)
+      operationId: getRoomFurniture
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+        - $ref: '#/components/parameters/FurnitureId'
+      responses:
+        '501':
+          description: Não implementado
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - Rooms
+      summary: Substituir mobília (scaffold - retorna 501)
+      operationId: updateRoomFurniture
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+        - $ref: '#/components/parameters/FurnitureId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '501':
+          description: Não implementado
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      tags:
+        - Rooms
+      summary: Atualizar mobília (scaffold - retorna 501)
+      operationId: patchRoomFurniture
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+        - $ref: '#/components/parameters/FurnitureId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '501':
+          description: Não implementado
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - Rooms
+      summary: Deletar mobília (scaffold - retorna 501)
+      operationId: deleteRoomFurniture
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+        - $ref: '#/components/parameters/FurnitureId'
+      responses:
+        '501':
+          description: Não implementado
         '404':
           $ref: '#/components/responses/NotFoundError'
         '401':
@@ -1571,14 +3901,14 @@ components:
       schema:
         type: string
     EmployeeId:
-      name: id
+      name: employeeId
       in: path
       required: true
       description: ID único do funcionário
       schema:
         type: string
     StudentId:
-      name: id
+      name: studentId
       in: path
       required: true
       description: ID único do estudante (UUID)
@@ -1586,7 +3916,7 @@ components:
         type: string
         format: uuid
     ProfessorId:
-      name: id
+      name: professorId
       in: path
       required: true
       description: ID único do professor (UUID)
@@ -1594,21 +3924,21 @@ components:
         type: string
         format: uuid
     CourseId:
-      name: id
+      name: courseId
       in: path
       required: true
       description: ID único da disciplina
       schema:
         type: string
     ClassId:
-      name: id
+      name: classId
       in: path
       required: true
       description: ID único da turma
       schema:
         type: string
     LessonId:
-      name: id
+      name: lessonId
       in: path
       required: true
       description: ID único da aula (UUID)
@@ -1616,14 +3946,14 @@ components:
         type: string
         format: uuid
     ReservationId:
-      name: id
+      name: reservationId
       in: path
       required: true
       description: ID único da reserva
       schema:
         type: string
     ResourceId:
-      name: id
+      name: resourceId
       in: path
       required: true
       description: ID único do recurso (UUID)
@@ -1631,10 +3961,92 @@ components:
         type: string
         format: uuid
     RoomId:
-      name: id
+      name: roomId
       in: path
       required: true
       description: ID único da sala
+      schema:
+        type: string
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      description: ID único da tarefa
+      schema:
+        type: string
+    ExamId:
+      name: examId
+      in: path
+      required: true
+      description: ID único da prova
+      schema:
+        type: string
+    MaterialId:
+      name: materialId
+      in: path
+      required: true
+      description: ID único do material
+      schema:
+        type: string
+    SubjectId:
+      name: subjectId
+      in: path
+      required: true
+      description: ID único do assunto
+      schema:
+        type: string
+        format: uuid
+    GraduationId:
+      name: graduationId
+      in: path
+      required: true
+      description: ID único da graduação
+      schema:
+        type: string
+        format: uuid
+    AuthorizedUserId:
+      name: authorizedUserId
+      in: path
+      required: true
+      description: ID único do usuário autorizado
+      schema:
+        type: string
+        format: uuid
+    PhoneNumberId:
+      name: phoneNumberId
+      in: path
+      required: true
+      description: ID único do telefone
+      schema:
+        type: string
+        format: uuid
+    FurnitureId:
+      name: furnitureId
+      in: path
+      required: true
+      description: ID único da mobília
+      schema:
+        type: string
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      description: ID único da categoria
+      schema:
+        type: string
+        format: uuid
+    FeatureId:
+      name: featureId
+      in: path
+      required: true
+      description: ID único da feature
+      schema:
+        type: string
+    FeatureValueId:
+      name: featureValueId
+      in: path
+      required: true
+      description: ID único do feature value
       schema:
         type: string
 
@@ -2374,6 +4786,421 @@ components:
         status:
           type: string
           enum: [AVAILABLE, OCCUPIED, MAINTENANCE, RESERVED]
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        expectedEndDate:
+          type: string
+          format: date-time
+        actualEndDate:
+          type: string
+          format: date-time
+          nullable: true
+
+    TaskCreateRequest:
+      type: object
+      required:
+        - description
+        - startDate
+        - expectedEndDate
+      properties:
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        expectedEndDate:
+          type: string
+          format: date-time
+        actualEndDate:
+          type: string
+          format: date-time
+
+    TaskUpdateRequest:
+      type: object
+      properties:
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        expectedEndDate:
+          type: string
+          format: date-time
+        actualEndDate:
+          type: string
+          format: date-time
+
+    ExamResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        weight:
+          type: number
+
+    ExamCreateRequest:
+      type: object
+      required:
+        - name
+        - date
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        weight:
+          type: number
+
+    ExamUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        weight:
+          type: number
+
+    MaterialResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+
+    MaterialCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+
+    MaterialUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+
+    SubjectResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+
+    SubjectCreateRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+
+    SubjectUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+
+    GraduationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        degree:
+          type: string
+        institution:
+          type: string
+        year:
+          type: integer
+
+    GraduationCreateRequest:
+      type: object
+      required:
+        - degree
+        - institution
+        - year
+      properties:
+        degree:
+          type: string
+        institution:
+          type: string
+        year:
+          type: integer
+
+    GraduationUpdateRequest:
+      type: object
+      properties:
+        degree:
+          type: string
+        institution:
+          type: string
+        year:
+          type: integer
+
+    AuthorizedUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    AuthorizedUserCreateRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    AuthorizedUserUpdateRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    PhoneNumberResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        type:
+          type: string
+          enum: [MOBILE, LANDLINE]
+
+    PhoneNumberCreateRequest:
+      type: object
+      required:
+        - number
+        - type
+      properties:
+        number:
+          type: string
+        type:
+          type: string
+          enum: [MOBILE, LANDLINE]
+
+    PhoneNumberUpdateRequest:
+      type: object
+      properties:
+        number:
+          type: string
+        type:
+          type: string
+          enum: [MOBILE, LANDLINE]
+
+    FurnitureResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        quantity:
+          type: integer
+
+    FurnitureCreateRequest:
+      type: object
+      required:
+        - name
+        - type
+        - quantity
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        quantity:
+          type: integer
+
+    FurnitureUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        quantity:
+          type: integer
+
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+
+    CategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    CategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    FeatureResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+
+    FeatureCreateRequest:
+      type: object
+      required:
+        - name
+        - categoryId
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+
+    FeatureUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+
+    FeatureValueResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: string
+        featureId:
+          type: string
+        resourceId:
+          type: string
+          format: uuid
+
+    FeatureValueCreateRequest:
+      type: object
+      required:
+        - value
+        - featureId
+        - resourceId
+      properties:
+        value:
+          type: string
+        featureId:
+          type: string
+        resourceId:
+          type: string
+          format: uuid
+
+    FeatureValueUpdateRequest:
+      type: object
+      properties:
+        value:
+          type: string
+        featureId:
+          type: string
+        resourceId:
+          type: string
+          format: uuid
 
   responses:
     BadRequestError:

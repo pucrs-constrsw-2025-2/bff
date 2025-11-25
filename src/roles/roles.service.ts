@@ -10,20 +10,24 @@ export class RolesService {
     return this.httpClient.get('oauth', `/api/v1/roles${params}`);
   }
 
-  async findOne(id: string) {
-    return this.httpClient.get('oauth', `/api/v1/roles/${id}`);
+  async findOne(roleId: string) {
+    return this.httpClient.get('oauth', `/api/v1/roles/${roleId}`);
   }
 
   async create(createDto: any) {
     return this.httpClient.post('oauth', '/api/v1/roles', createDto);
   }
 
-  async update(id: string, updateDto: any) {
-    return this.httpClient.put('oauth', `/api/v1/roles/${id}`, updateDto);
+  async update(roleId: string, updateDto: any) {
+    return this.httpClient.put('oauth', `/api/v1/roles/${roleId}`, updateDto);
   }
 
-  async remove(id: string) {
-    return this.httpClient.delete('oauth', `/api/v1/roles/${id}`);
+  async patch(roleId: string, updateDto: any) {
+    return this.httpClient.patch('oauth', `/api/v1/roles/${roleId}`, updateDto);
+  }
+
+  async remove(roleId: string) {
+    return this.httpClient.delete('oauth', `/api/v1/roles/${roleId}`);
   }
 }
 
