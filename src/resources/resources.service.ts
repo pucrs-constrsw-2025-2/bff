@@ -35,9 +35,5 @@ export class ResourcesService {
   async remove(resourceId: string) {
     return this.httpClient.delete('resources', `/api/v1/resources/${resourceId}`);
   }
-
-  async getResourcesByCategory(categoryId: string) {
-    return this.httpClient.get('resources', `/api/v1/resources/category/${categoryId}`);
-  }
 }
 

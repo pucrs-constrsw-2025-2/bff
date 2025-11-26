@@ -19,12 +19,6 @@ export class ResourcesController {
     return this.resourcesService.create(createDto);
   }
 
-  @Get('category/:categoryId')
-  @ApiOperation({ summary: 'Buscar recursos por categoria' })
-  async getResourcesByCategory(@Param('categoryId') categoryId: string) {
-    return this.resourcesService.getResourcesByCategory(categoryId);
-  }
-
   @Get(':resourceId')
   @ApiOperation({ summary: 'Buscar recurso por ID' })
   async findOne(@Param('resourceId') resourceId: string) {

@@ -6,6 +6,7 @@ declare module 'opossum' {
     name?: string;
     enabled?: boolean;
     volumeThreshold?: number;
+    isOurError?: (error: any) => boolean;
   }
 
   type CircuitBreakerState = 'OPEN' | 'CLOSED' | 'HALF_OPEN';

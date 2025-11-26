@@ -87,6 +87,19 @@ export class CircuitBreakerService {
       {
         ...defaultOptions,
         name: options?.name || serviceName,
+        // Só conta como erro do circuit breaker: 5xx, timeouts e erros de rede
+        // Não conta 4xx (401, 403, etc.) como falhas do serviço
+        isOurError: (error: any) => {
+          // Se for HttpException, verifica o status code
+          if (error?.statusCode) {
+            const status = error.statusCode;
+            // Só conta 5xx e 408 (timeout) como erros do serviço
+            // 4xx (401, 403, 404, etc.) são erros do cliente, não do serviço
+            return status >= 500 || status === 408;
+          }
+          // Erros de rede, timeouts e outros erros técnicos sempre contam
+          return true;
+        },
       },
     );
 

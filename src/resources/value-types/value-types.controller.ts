@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ValueTypesService } from './value-types.service';
 
 @ApiTags('Resources')
-@Controller('value-types')
+@Controller('resources/value-types')
 export class ValueTypesController {
   constructor(private readonly valueTypesService: ValueTypesService) {}
 

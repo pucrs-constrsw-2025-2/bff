@@ -79,15 +79,17 @@ export class HttpClientService {
       );
 
       return (response as any).data as T;
-    } catch (error) {
+    } catch (error: any) {
+      // Erros vindos diretamente do Axios
       if (error instanceof AxiosError) {
-        // Converte AxiosError em HttpException do NestJS
-        const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
-        const message = error.response?.data?.detail || 
-                       error.response?.data?.message || 
-                       error.message || 
-                       'Internal server error';
-        
+        const status =
+          error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+        const message =
+          error.response?.data?.detail ||
+          error.response?.data?.message ||
+          error.message ||
+          'Internal server error';
+
         this.logger.error({
           message: 'HTTP request failed',
           service: serviceName,
@@ -106,6 +108,34 @@ export class HttpClientService {
           status,
         );
       }
+
+      // Erros do circuit breaker (por exemplo, \"Breaker is open\")
+      if (
+        typeof error?.message === 'string' &&
+        (error.message.includes('Breaker is open') ||
+          error.code === 'EOPENBREAKER')
+      ) {
+        const message =
+          'Serviço externo indisponível no momento (circuit breaker aberto).';
+
+        this.logger.error({
+          message: 'Circuit breaker open',
+          service: serviceName,
+          url,
+          error: error.message,
+        });
+
+        throw new HttpException(
+          {
+            message,
+            statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+            error: 'Service Unavailable',
+          },
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+
+      // Qualquer outro erro é propagado
       throw error;
     }
   }

@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { FeatureValuesService } from './feature-values.service';
 
 @ApiTags('Resources')
-@Controller('feature-values')
+@Controller('resources/feature-values')
 export class FeatureValuesController {
   constructor(private readonly featureValuesService: FeatureValuesService) {}
 
