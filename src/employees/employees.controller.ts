@@ -38,7 +38,7 @@ export class EmployeesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Administrador')
+  @Roles('administrator')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar funcionário' })
   @ApiResponse({ status: 201, description: 'Funcionário criado com sucesso' })
@@ -55,7 +55,7 @@ export class EmployeesController {
 
   @Put(':employeeId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Administrador')
+  @Roles('administrator')
   @ApiOperation({ summary: 'Atualizar funcionário (completo)' })
   async update(@Param('employeeId') employeeId: string, @Body() updateDto: any) {
     return this.employeesService.update(employeeId, updateDto);
@@ -63,7 +63,7 @@ export class EmployeesController {
 
   @Patch(':employeeId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Administrador')
+  @Roles('administrator')
   @ApiOperation({ summary: 'Atualizar funcionário (parcial)' })
   async patch(@Param('employeeId') employeeId: string, @Body() updateDto: any) {
     return this.employeesService.patch(employeeId, updateDto);
@@ -71,7 +71,7 @@ export class EmployeesController {
 
   @Delete(':employeeId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Administrador')
+  @Roles('administrator')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar funcionário' })
   async remove(@Param('employeeId') employeeId: string) {

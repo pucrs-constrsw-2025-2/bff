@@ -66,11 +66,33 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
     }
 
+    // Extrair roles de diferentes locais no token
+    const roles: string[] = [];
+    
+    // Roles do realm
+    if (payload.realm_access?.roles) {
+      roles.push(...payload.realm_access.roles);
+    }
+    
+    // Roles de recursos específicos (ex: oauth, account, etc.)
+    if (payload.resource_access) {
+      Object.values(payload.resource_access).forEach((resource: any) => {
+        if (resource.roles && Array.isArray(resource.roles)) {
+          roles.push(...resource.roles);
+        }
+      });
+    }
+    
+    // Fallback para roles diretos no payload
+    if (payload.roles && Array.isArray(payload.roles)) {
+      roles.push(...payload.roles);
+    }
+
     return {
       userId: payload.sub,
       username: payload.preferred_username || payload.username,
       email: payload.email,
-      roles: payload.realm_access?.roles || payload.roles || [],
+      roles: [...new Set(roles)], // Remove duplicatas
     };
   }
 }
