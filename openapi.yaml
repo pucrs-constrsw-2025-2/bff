@@ -3128,7 +3128,7 @@ components:
       name: employeeId
       in: path
       required: true
-      description: ID do funcionário
+      description: ID do funcionário (UUID)
       schema:
         type: string
         format: uuid
@@ -3136,7 +3136,7 @@ components:
       name: taskId
       in: path
       required: true
-      description: ID da tarefa
+      description: ID da tarefa (UUID)
       schema:
         type: string
         format: uuid
